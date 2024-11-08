@@ -12,7 +12,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-100 font-sans antialiased flex items-center justify-center min-h-screen">
+<body class="bg-blue-700 font-sans antialiased flex items-center justify-center min-h-screen">
     <div class="max-w-sm w-full p-6 bg-white rounded-lg shadow-md">
         <h2 class="text-2xl font-bold text-center mb-6">Login</h2>
         <form class="mb-4">
