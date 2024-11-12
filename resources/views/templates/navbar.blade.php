@@ -24,7 +24,9 @@
             </a>
 
         </div>
-
+        <div class="flex-1 text-center text-yellow-400 text-xl font-semibold">
+            Casas Andre Luiz
+        </div>
         <!-- Menu e ícones -->
         <div class="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
 
@@ -68,7 +70,7 @@
                 id="user-menu-button" aria-expanded="false" data-dropdown-toggle="user-dropdown"
                 data-dropdown-placement="bottom">
                 <span class="sr-only">Open user menu</span>
-                <img class="w-8 h-8 rounded-full" src="/docs/images/people/profile-picture-3.jpg" alt="user photo">
+                <img class="w-8 h-8 rounded-full" src="https://avatar.iran.liara.run/public" alt="user photo">
             </button>
             <!-- Dropdown do usuário -->
             <div class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700 dark:divide-gray-600"
@@ -94,7 +96,7 @@
             </div>
         </div>
         <!-- Navbar Links -->
-        <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-user">
+        {{-- <div class="items-center justify-between hidden w-full md:flex md:w-auto md:order-1" id="navbar-user">
             <ul
                 class="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:space-x-8 rtl:space-x-reverse md:flex-row md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
                 <li>
@@ -113,7 +115,7 @@
                         aria-current="page">Services</a>
                 </li>
             </ul>
-        </div>
+        </div> --}}
     </div>
 </nav>
 
@@ -122,8 +124,9 @@
     <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 flex justify-end items-center space-x-3">
         <!-- Select de Ano -->
         <select
-            class="form-select block w-28 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <option selected>2024</option>
+            class="form-select block w-28 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            id="selectedYear" name="selectedYear">
+            <option value="2024" selected>2024</option>
             <option>2023</option>
             <option>2022</option>
             <option>2021</option>
@@ -131,8 +134,9 @@
 
         <!-- Select de Mês -->
         <select
-            class="form-select block w-28 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <option selected>January</option>
+            class="form-select block w-28 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            id="selectedMonth" name="selectedMonth">
+            <option value="11" selected>January</option>
             <option>February</option>
             <option>March</option>
             <option>April</option>
