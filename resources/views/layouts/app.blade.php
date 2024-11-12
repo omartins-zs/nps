@@ -19,7 +19,7 @@
             </style>
         @endif
     </head>
-    <body class="bg-white font-sans antialiased">
+    <body class="bg-gray-300 font-sans antialiased">
         @include('templates.navbar')
         @include('templates.header')
         <div class="flex">
