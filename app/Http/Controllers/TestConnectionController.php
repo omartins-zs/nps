@@ -20,7 +20,7 @@ class TestConnectionController extends Controller
                 'status' => 'Conexão bem-sucedida',
                 'data' => $result,
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return response()->json([
                 'status' => 'Erro de conexão',
                 'message' => $e->getMessage(),
@@ -31,7 +31,10 @@ class TestConnectionController extends Controller
     {
         try {
             // Tente obter alguns registros da tabela 'notas'
-            $result = DB::table('notas')->limit(4)->get();
+            // $result = DB::table('inchamado')->limit(4)->get();
+            // $result = DB::table('inchamado')->limit(4)->get();
+            // $result = DB::connection('cal')->table('inchamado')->limit(4)->get();
+            $result = DB::connection('nps')->table('notas')->limit(4)->get();
 
             return response()->json([
                 'status' => 'Conexão bem-sucedida',
@@ -61,7 +64,7 @@ class TestConnectionController extends Controller
         // }
 
         try {
-            $result = DB::connection('firebird_ulp')->table('SUDEPARTAMENTO')->get();
+            $result = DB::connection(name: 'firebird_ulp')->table('SUDEPARTAMENTO')->get();
 
             // Converter os dados para UTF-8, se necessário
             $result = $result->map(function ($item) {
