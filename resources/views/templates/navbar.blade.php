@@ -117,11 +117,8 @@
 <!-- Segunda linha com selects e botão de pesquisa -->
 <div class="bg-white py-1 border-t border-gray-200">
     <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 flex justify-end items-center space-x-3">
-
         <!-- Select de Mês -->
-
-        <div class="">
-            {{-- <label for="month1" class="block text-sm font-medium text-gray-700">Mês 1</label> --}}
+        <div>
             <select id="selectedMonth" name="selectedMonth"
                 class="form-control w-full py-2 px-3 border border-gray-300 rounded-md">
                 @foreach ($meses as $mes => $nomeMes)
@@ -131,12 +128,11 @@
                 @endforeach
             </select>
         </div>
-        <!-- Select de Ano -->
 
-        <div class="">
-            {{-- <label for="year1" class="block text-sm font-medium text-gray-700">Ano 1</label> --}}
+        <!-- Select de Ano  -->
+        <div class="w-20">
             <input type="number" id="selectedYear" name="selectedYear"
-                class="form-control w-full py-2 px-3 border border-gray-300 rounded-md" value="{{ $year }}">
+                class="form-control w-full py-2 px-2 border border-gray-300 rounded-md" value="{{ $year }}">
         </div>
 
         <!-- Botão de Pesquisa -->
