@@ -19,8 +19,7 @@
             <!-- Logo e nome -->
             <a href="https://flowbite.com/" class="flex items-center space-x-3 rtl:space-x-reverse">
                 <img src="https://flowbite.com/docs/images/logo.svg" class="h-8" alt="Flowbite Logo" />
-                <span
-                    class="self-center text-2xl font-semibold text-white whitespace-nowrap dark:text-white">Flowbite</span>
+                <span class="self-center text-2xl font-semibold text-white whitespace-nowrap dark:text-white">NPS</span>
             </a>
 
         </div>
@@ -44,19 +43,15 @@
             <div id="dropdownNavbar"
                 class="z-10 hidden font-normal bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 dark:divide-gray-600">
                 <ul class="py-2 text-sm text-gray-700 dark:text-gray-400" aria-labelledby="dropdownLargeButton">
-                    <li>
-                        <a href="#"
-                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Saidas</a>
-                    </li>
-                    <li>
-                        <a href="#"
-                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Portaria</a>
-                    </li>
-                    <li>
-                        <a href="#"
-                            class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Controle
-                            de Acesso</a>
-                    </li>
+                    @foreach ($sistemas as $sistema)
+                        <li>
+                            <a href="{{ $sistema['link'] }}" target="_blank"
+                                class="flex items-center px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">
+                                <i class="{{ $sistema['icone'] }} text-blue-500 mr-2"></i> <!-- Ícone do sistema -->
+                                {{ $sistema['descricao'] }} <!-- Descrição do sistema -->
+                            </a>
+                        </li>
+                    @endforeach
                 </ul>
                 <div class="py-1">
                     <a href="#"
@@ -131,6 +126,8 @@
             <option>2022</option>
             <option>2021</option>
         </select>
+
+
 
         <!-- Select de Mês -->
         <select
