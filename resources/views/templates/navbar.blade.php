@@ -117,38 +117,33 @@
 <!-- Segunda linha com selects e botão de pesquisa -->
 <div class="bg-white py-1 border-t border-gray-200">
     <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 flex justify-end items-center space-x-3">
-        <!-- Select de Ano -->
-        <select
-            class="form-select block w-28 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            id="selectedYear" name="selectedYear">
-            <option value="2024" selected>2024</option>
-            <option>2023</option>
-            <option>2022</option>
-            <option>2021</option>
-        </select>
-
-
 
         <!-- Select de Mês -->
-        <select
-            class="form-select block w-28 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            id="selectedMonth" name="selectedMonth">
-            <option value="11" selected>January</option>
-            <option>February</option>
-            <option>March</option>
-            <option>April</option>
-            <!-- Adicione os meses restantes -->
-        </select>
+
+        <div class="">
+            {{-- <label for="month1" class="block text-sm font-medium text-gray-700">Mês 1</label> --}}
+            <select id="selectedMonth" name="selectedMonth"
+                class="form-control w-full py-2 px-3 border border-gray-300 rounded-md">
+                @foreach ($meses as $mes => $nomeMes)
+                    <option value="{{ $mes }}" {{ $month == $mes ? 'selected' : '' }}>
+                        {{ $nomeMes }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        <!-- Select de Ano -->
+
+        <div class="">
+            {{-- <label for="year1" class="block text-sm font-medium text-gray-700">Ano 1</label> --}}
+            <input type="number" id="selectedYear" name="selectedYear"
+                class="form-control w-full py-2 px-3 border border-gray-300 rounded-md" value="{{ $year }}">
+        </div>
 
         <!-- Botão de Pesquisa -->
         <button type="button"
             class="ml-4 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center">
-            <svg class="w-5 h-5 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10 6a4 4 0 114 4 4 4 0 01-4-4zm0 0c-.773 0-1.5.247-2.121.679L2.63 4.379a1 1 0000 1.414l7.149 7.148A3.98 3.98 0 0110 10a4 4 0 110-4z" />
-            </svg>
-            Search
+            <i class="fas fa-search mr-2"></i>
+            Consultar
         </button>
     </div>
 </div>
