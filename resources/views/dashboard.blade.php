@@ -154,7 +154,7 @@
 
 
     <!-- Fieldset com card de seleção de mês e ano -->
-    <form id="comparacaoForm">
+    <form id="comparacaoForm" method="POST" action="{{ route('comparar.chamados') }}">
         @csrf
         <div class="col-12">
             <fieldset class="border-2 border-gray-300 rounded-lg p-4 mt-6">
@@ -165,7 +165,6 @@
                     </a>
                 </legend>
 
-                <!-- Conteúdo do form com campos de Mês e Ano -->
                 <div class="w-full bg-white dark:bg-gray-800 rounded-lg shadow-md mt-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
                         <div class="col-span-1 grid grid-cols-2 gap-4">
@@ -207,7 +206,7 @@
                                     value="{{ $year }}">
                             </div>
 
-                            <button type="button"
+                            <button type="submit"
                                 class="text-white bg-gray-800 hover:bg-gray-900 focus:ring-2 focus:ring-gray-600 font-medium rounded-lg text-xs md:text-sm px-4 py-2.5 mt-1">
                                 Consultar
                             </button>
@@ -218,11 +217,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 px-6">
                         <div
                             class="p-6 bg-white border-t-4 border-green-500 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                            <canvas id="graficocomparacao1" class="w-full max-w-[250px]"></canvas>
+                            <canvas id="graficocomparacao1" class="w-full "></canvas>
                         </div>
                         <div
                             class="p-6 bg-white border-t-4 border-red-500 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
-                            <canvas id="graficocomparacao2" class="w-full max-w-[250px]"></canvas>
+                            <canvas id="graficocomparacao2" class="w-full"></canvas>
                         </div>
                     </div>
                 </div>
@@ -514,156 +513,173 @@
         </div>
     </div>
 
+    {{-- Charts de Comparação Livewire --}}
+    <script></script>
 
-    {{-- Charts de Comparação --}}
+    {{-- Charts de Comparação Estatico  --}}
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            let graficoComparacao = {}; // Armazenar os gráficos para atualização
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById('comparacaoForm');
+            let chart1, chart2; // Variáveis para armazenar os gráficos
 
-            // Função para enviar a requisição e obter os dados
-            async function gerarGraficoComparacao() {
-                const month1 = document.getElementById('monthComparacao1').value;
-                const year1 = document.getElementById('yearComparacao1').value;
-                const month2 = document.getElementById('monthComparacao2').value;
-                const year2 = document.getElementById('yearComparacao2').value;
+            form.addEventListener('submit', function(event) {
+                event.preventDefault(); // Evita o envio padrão do formulário
 
-                try {
-                    const response = await fetch("{{ route('comparar.chamados') }}", {
+                const formData = new FormData(form);
+
+                fetch("{{ route('comparar.chamados') }}", {
                         method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                        },
-                        body: JSON.stringify({
-                            monthComparacao1: month1,
-                            yearComparacao1: year1,
-                            monthComparacao2: month2,
-                            yearComparacao2: year2
-                        })
+                        body: formData,
+                    })
+                    .then(response => response.json()) // Espera a resposta no formato JSON
+                    .then(data => {
+                        // Exibe os dados recebidos no console (opcional)
+                        console.log(data);
+
+                        // Se já existir gráfico1, destruímos
+                        if (chart1) {
+                            chart1.destroy();
+                        }
+                        if (chart2) {
+                            chart2.destroy();
+                        }
+
+                        // Preenche os gráficos com os dados recebidos
+                        updateCharts(data);
+                    })
+                    .catch(error => {
+                        console.error("Erro ao enviar os dados:", error);
                     });
+            });
 
-                    if (!response.ok) {
-                        throw new Error(`Erro ${response.status}: ${response.statusText}`);
-                    }
+            // Função para atualizar os gráficos com os dados recebidos
+            function updateCharts(data) {
+                const ctx1 = document.getElementById('graficocomparacao1');
+                const ctx2 = document.getElementById('graficocomparacao2');
 
-                    const resultado = await response.json();
-                    atualizarGraficoComparacao(resultado);
-
-                } catch (error) {
-                    console.error("Erro ao gerar gráfico de comparação:", error);
+                if (!ctx1 || !ctx2) {
+                    console.error("Não foi possível encontrar os elementos canvas.");
+                    return; // Se não encontrar os elementos canvas, não tenta criar o gráfico
                 }
-            }
 
-            // Função para atualizar os gráficos de comparação
-            function atualizarGraficoComparacao(dados) {
-                const dadosMes1 = dados.mes1 ? dados.mes1.dados : null;
-                const dadosMes2 = dados.mes2 ? dados.mes2.dados : null;
-
-                if (!dadosMes1 || !dadosMes2) {
-                    console.error("Erro: os dados de comparação não estão corretamente estruturados.");
-                    return;
-                }
+                const mes1Data = data.mes1.dados;
+                const mes2Data = data.mes2.dados;
 
                 const chartData1 = {
                     labels: ['ABERTOS', 'CONCLUÍDOS'],
                     datasets: [{
-                            label: `ABERTOS (${dados.mes1.mes}/${dados.mes1.ano})`,
-                            data: [dadosMes1.ABERTOS, 0],
-                            backgroundColor: 'rgba(0, 123, 255, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: `CONCLUÍDOS (${dados.mes1.mes}/${dados.mes1.ano})`,
-                            data: [0, dadosMes1.CONCLUIDO],
-                            backgroundColor: 'rgba(40, 167, 69, 1)',
-                            borderWidth: 1
-                        }
-                    ]
+                        label: `ABERTOS (${data.mes1.mes}/${data.mes1.ano})`,
+                        data: [mes1Data.ABERTOS, 0],
+                        backgroundColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: `CONCLUÍDOS (${data.mes1.mes}/${data.mes1.ano})`,
+                        data: [0, mes1Data.CONCLUIDO],
+                        backgroundColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    }]
                 };
 
                 const chartData2 = {
                     labels: ['ABERTOS', 'CONCLUÍDOS'],
                     datasets: [{
-                            label: `ABERTOS (${dados.mes2.mes}/${dados.mes2.ano})`,
-                            data: [dadosMes2.ABERTOS, 0],
-                            backgroundColor: 'rgba(0, 123, 255, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: `CONCLUÍDOS (${dados.mes2.mes}/${dados.mes2.ano})`,
-                            data: [0, dadosMes2.CONCLUIDO],
-                            backgroundColor: 'rgba(40, 167, 69, 1)',
-                            borderWidth: 1
-                        }
-                    ]
+                        label: `ABERTOS (${data.mes2.mes}/${data.mes2.ano})`,
+                        data: [mes2Data.ABERTOS, 0],
+                        backgroundColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: `CONCLUÍDOS (${data.mes2.mes}/${data.mes2.ano})`,
+                        data: [0, mes2Data.CONCLUIDO],
+                        backgroundColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    }]
                 };
 
-                // Atualiza ou cria o gráfico 1
-                const ctx1 = document.getElementById('graficocomparacao1').getContext('2d');
-                if (graficoComparacao["graficoComparacao1"]) {
-                    graficoComparacao["graficoComparacao1"].data = chartData1;
-                    graficoComparacao["graficoComparacao1"].update();
-                } else {
-                    graficoComparacao["graficoComparacao1"] = new Chart(ctx1, {
-                        type: 'bar',
-                        data: chartData1,
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
+                // Cria o gráfico para o primeiro canvas (graficocomparacao1)
+                chart1 = new Chart(ctx1, {
+                    type: 'bar',
+                    data: chartData1,
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 50,
+                                    callback: function(value) {
+                                        return value.toLocaleString();
+                                    }
                                 }
                             },
-                            plugins: {
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(tooltipItem) {
-                                            return tooltipItem.dataset.label + ': ' + tooltipItem.raw;
-                                        }
+                            x: {
+                                ticks: {
+                                    autoSkip: false,
+                                    maxRotation: 0,
+                                    minRotation: 0
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    title: function(tooltipItem) {
+                                        return tooltipItem[0].label;
+                                    },
+                                    label: function(tooltipItem) {
+                                        const datasetLabel = tooltipItem.dataset.label || '';
+                                        const value = tooltipItem.raw;
+                                        return `${datasetLabel}: ${value}`;
                                     }
                                 }
                             }
                         }
-                    });
-                }
+                    }
+                });
 
-                // Atualiza ou cria o gráfico 2
-                const ctx2 = document.getElementById('graficocomparacao2').getContext('2d');
-                if (graficoComparacao["graficoComparacao2"]) {
-                    graficoComparacao["graficoComparacao2"].data = chartData2;
-                    graficoComparacao["graficoComparacao2"].update();
-                } else {
-                    graficoComparacao["graficoComparacao2"] = new Chart(ctx2, {
-                        type: 'bar',
-                        data: chartData2,
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true
+                // Cria o gráfico para o segundo canvas (graficocomparacao2)
+                chart2 = new Chart(ctx2, {
+                    type: 'bar',
+                    data: chartData2,
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 50,
+                                    callback: function(value) {
+                                        return value.toLocaleString();
+                                    }
                                 }
                             },
-                            plugins: {
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(tooltipItem) {
-                                            return tooltipItem.dataset.label + ': ' + tooltipItem.raw;
-                                        }
+                            x: {
+                                ticks: {
+                                    autoSkip: false,
+                                    maxRotation: 0,
+                                    minRotation: 0
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    title: function(tooltipItem) {
+                                        return tooltipItem[0].label;
+                                    },
+                                    label: function(tooltipItem) {
+                                        const datasetLabel = tooltipItem.dataset.label || '';
+                                        const value = tooltipItem.raw;
+                                        return `${datasetLabel}: ${value}`;
                                     }
                                 }
                             }
                         }
-                    });
-                }
+                    }
+                });
             }
-
-            // Captura o evento de clique do botão
-            document.querySelector("button[type='button']").addEventListener("click", function () {
-                gerarGraficoComparacao();
-            });
         });
-</script>
+    </script>
 
     {{-- Charts de Teste --}}
 

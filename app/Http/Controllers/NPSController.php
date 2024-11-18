@@ -97,6 +97,9 @@ class NPSController extends Controller
 
         // dd($dadosComparacao);
 
+        // Armazenando os dados na sessão
+        session(['dadosComparacao' => $dadosComparacao]);
+
         // Retorna a resposta JSON com os dados de comparação
         return response()->json($dadosComparacao);
 
