@@ -214,7 +214,7 @@
                     </div>
 
                     <!-- Gráficos de Comparação -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 px-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 px-6 hidden" id="graficos-container">
                         <div
                             class="p-6 bg-white border-t-4 border-green-500 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700">
                             <canvas id="graficocomparacao1" class="w-full "></canvas>
@@ -557,11 +557,15 @@
             function updateCharts(data) {
                 const ctx1 = document.getElementById('graficocomparacao1');
                 const ctx2 = document.getElementById('graficocomparacao2');
+                const container = document.getElementById('graficos-container');
 
-                if (!ctx1 || !ctx2) {
-                    console.error("Não foi possível encontrar os elementos canvas.");
-                    return; // Se não encontrar os elementos canvas, não tenta criar o gráfico
+                if (!ctx1 || !ctx2 || !container) {
+                    console.error("Não foi possível encontrar os elementos necessários.");
+                    return; // Se não encontrar os elementos canvas, não tenta criar os gráficos
                 }
+
+                // Remover classe "hidden" para exibir os gráficos
+                container.classList.remove('hidden');
 
                 const mes1Data = data.mes1.dados;
                 const mes2Data = data.mes2.dados;
@@ -596,7 +600,7 @@
                     }]
                 };
 
-                // Cria o gráfico para o primeiro canvas (graficocomparacao1)
+                // Criação dos gráficos (mesmo código anterior)
                 chart1 = new Chart(ctx1, {
                     type: 'bar',
                     data: chartData1,
