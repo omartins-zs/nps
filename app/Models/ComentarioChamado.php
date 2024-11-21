@@ -10,9 +10,9 @@ class ComentarioChamado extends Model
     use HasFactory;
 
     protected $fillable = [
-        'ticket_id',
-        'user_id',
-        'comment',
+        'chamado_id',
+        'usuario_id',
+        'comentario',
     ];
 
     /**
@@ -20,7 +20,7 @@ class ComentarioChamado extends Model
      */
     public function chamado()
     {
-        return $this->belongsTo(Chamado::class, 'ticket_id');
+        return $this->belongsTo(Chamado::class, 'chamado_id');
     }
 
     /**
@@ -28,6 +28,6 @@ class ComentarioChamado extends Model
      */
     public function usuario()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(User::class, 'usuario_id');
     }
 }

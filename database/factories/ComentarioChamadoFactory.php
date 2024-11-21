@@ -19,9 +19,9 @@ class ComentarioChamadoFactory extends Factory
     public function definition()
     {
         return [
-            'ticket_id' => Chamado::inRandomOrder()->first()->id, // Associando a um chamado aleatório
-            'user_id' => User::inRandomOrder()->first()->id, // Associando a um usuário aleatório
-            'comment' => $this->faker->paragraph,
+            'chamado_id' => Chamado::inRandomOrder()->first()->id, // Associando a um chamado aleatório
+            'usuario_id' => User::inRandomOrder()->first()->id, // Associando a um usuário aleatório
+            'comentario' => $this->faker->paragraph,
         ];
     }
 }

@@ -48,6 +48,6 @@ class Chamado extends Model
      */
     public function comentarios()
     {
-        return $this->hasMany(ComentarioChamado::class, 'ticket_id');
+        return $this->hasMany(ComentarioChamado::class, 'chamado_id');
     }
 }
