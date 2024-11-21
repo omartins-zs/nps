@@ -9,6 +9,8 @@ class Tarefa extends Model
 {
     use HasFactory;
 
+    protected $table = 'tarefas_chamados'; // Definindo a tabela correta
+
     protected $fillable = [
         'chamado_id',
         'tipo_tarefa',
