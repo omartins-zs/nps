@@ -9,6 +9,8 @@ class ComentarioChamado extends Model
 {
     use HasFactory;
 
+    protected $table = 'comentarios_chamados';
+
     protected $fillable = [
         'chamado_id',
         'usuario_id',
