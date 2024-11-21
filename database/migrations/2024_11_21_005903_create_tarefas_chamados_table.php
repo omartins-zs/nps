@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('chamado_id');
             $table->string('descricao');
-            $table->enum('tipo', ['atendimento', 'melhoria', 'novo_projeto', 'manutencao']);
+            $table->enum('tipo_tarefa', ['atendimento', 'melhoria', 'novo projeto', 'manutencao']);
             $table->integer('horas_previstas')->nullable();
             $table->integer('horas_gastas')->nullable();
             $table->date('data_previsao')->nullable();
