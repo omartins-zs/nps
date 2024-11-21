@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\Chamado;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -14,10 +16,12 @@ class ComentarioChamadoFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition(): array
+    public function definition()
     {
         return [
-            //
+            'ticket_id' => Chamado::inRandomOrder()->first()->id, // Associando a um chamado aleatório
+            'user_id' => User::inRandomOrder()->first()->id, // Associando a um usuário aleatório
+            'comment' => $this->faker->paragraph,
         ];
     }
 }
