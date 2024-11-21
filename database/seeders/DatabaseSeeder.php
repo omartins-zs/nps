@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Chamado;
+use App\Models\ComentarioChamado;
+use App\Models\Tarefa;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -14,10 +17,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::factory(50)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        Chamado::factory(50)->create();
+        Tarefa::factory(50)->create();
+        ComentarioChamado::factory(25)->create();
     }
 }
