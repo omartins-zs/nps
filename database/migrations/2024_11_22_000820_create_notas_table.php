@@ -12,8 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('notas', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+            $table->id(); // ID único da nota
+            $table->unsignedBigInteger('usuario_id'); // Referência ao usuário
+            $table->tinyInteger('nota')->unsigned(); // Nota entre 0 e 10
+            $table->date('data_resposta'); // Data da resposta
+            $table->timestamps(); // Criação e atualização
+
+            // Relacionamento com a tabela de usuários
+            $table->foreign('usuario_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
