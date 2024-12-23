@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('avaliacoes', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('setor_id')->constrained('setores')->onDelete('cascade');
+            $table->tinyInteger('nota')->unsigned(); // Nota de 0 a 10
+            $table->text('comentario')->nullable();
             $table->timestamps();
         });
     }
