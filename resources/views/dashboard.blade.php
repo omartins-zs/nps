@@ -125,7 +125,7 @@
             <div
                 class="max-w-sm p-6 bg-white border-t-4 border-indigo-500 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 h-90">
                 <a href="#" class="mb-4 block text-2xl font-bold text-indigo-600 hover:text-indigo-800">Técnico</a>
-                <canvas id="tecnicoChart" style="height: 100%; max-height: 250px;"></canvas>
+                <canvas id="tatendimentoChart" style="height: 100%; max-height: 250px;"></canvas>
             </div>
 
             <!-- Card 2 - Tempo -->
@@ -518,7 +518,7 @@
 
     {{-- Charts de Comparação Estatico  --}}
 
-    <script>
+    {{-- <script>
         document.addEventListener("DOMContentLoaded", function() {
             const form = document.getElementById('comparacaoForm');
             let chart1, chart2; // Variáveis para armazenar os gráficos
@@ -683,7 +683,7 @@
                 });
             }
         });
-    </script>
+    </script> --}}
 
     {{-- Charts de Teste --}}
 
@@ -757,7 +757,7 @@
         });
     </> --}}
 
-    <script>
+    {{-- <script>
         let graficosPrevisao = {};
 
         async function graficoMaisMenos3Dias() {
@@ -847,10 +847,10 @@
 
         // Executa a função ao carregar a página
         document.addEventListener('DOMContentLoaded', graficoMaisMenos3Dias);
-    </script>
+    </script> --}}
 
     <!-- Script para alternar a visibilidade do conteúdo e gerar o gráfico -->
-    <script>
+    {{-- <script>
         document.getElementById('indicadorAnualBtnChamadosConcluidos').addEventListener('click', async function() {
             const indicadorAnualChamadosConclusao = document.getElementById('indicadorAnualChamadosConclusao');
 
@@ -941,10 +941,10 @@
                 }
             });
         }
-    </script>
+    </script> --}}
 
 
-    <script>
+    {{-- <script>
         const graficos = {};
 
         async function geraGraficoChamados(id, nomeChart) {
@@ -1067,7 +1067,7 @@
 
         // Executa a geração dos gráficos ao carregar a página
         document.addEventListener('DOMContentLoaded', gerarTodosGraficos);
-    </script>
+    </script> --}}
 
     <script>
         const charts = {};
@@ -1076,53 +1076,66 @@
             const selectedMonth = document.querySelector('#selectedMonth').value;
             const selectedYear = document.querySelector('#selectedYear').value;
 
-            if (charts[nomeChart]) return; // Verifica se o gráfico já existe
-
             const url = `/relatorio-indicadores-json/${selectedMonth}/${selectedYear}/${id}`;
 
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                // console.log
+
+                console.log("Dados da API:", data);
+
+                // Verifica se existem dados válidos
+                if (!data || !data.media_anual || Object.keys(data.media_anual).every(key => parseFloat(data
+                        .media_anual[key].replace(",", ".")) === 0)) {
+                    console.warn("Os dados retornados são inválidos ou todos os valores são zerados.");
+                    return;
+                }
+
                 const labels = Object.keys(data.media_anual);
-                const values = Object.values(data.media_anual).map(v => parseFloat(v.replace(",", ".")));
+                const values = Object.values(data.media_anual).map(value => parseFloat(value.replace(",", ".")));
 
                 const ctx = document.getElementById(nomeChart).getContext('2d');
-                charts[nomeChart] = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: values,
-                            backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545'],
-                        }],
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        const label = context.label;
-                                        const value = context.raw.toFixed(2);
-                                        return `${label}: ${value}`;
-                                    }
-                                },
-                                backgroundColor: "rgb(255,255,255)",
-                                bodyColor: "#858796",
-                                borderColor: '#dddfeb',
-                                borderWidth: 1,
-                            },
+                if (charts[nomeChart]) {
+                    charts[nomeChart].data.labels = labels;
+                    charts[nomeChart].data.datasets[0].data = values;
+                    charts[nomeChart].update();
+                } else {
+                    charts[nomeChart] = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: values,
+                                backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
+                            }]
                         },
-                        layout: {
-                            padding: {
-                                top: 10,
-                                bottom: 10
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const label = context.label || '';
+                                            const value = context.raw.toFixed(2);
+                                            return `${label}: ${value}%`;
+                                        }
+                                    },
+                                    backgroundColor: "rgb(255,255,255)",
+                                    bodyColor: "#858796",
+                                    borderColor: '#dddfeb',
+                                    borderWidth: 1
+                                }
+                            },
+                            layout: {
+                                padding: {
+                                    top: 10,
+                                    bottom: 10
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             } catch (error) {
                 console.error("Erro ao gerar o gráfico:", error);
             }

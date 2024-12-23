@@ -19,6 +19,7 @@ Route::get('/login', function () {
 })->name('login');
 
 Route::get('/nps', [NPSController::class, 'index'])->name('dashboard');
+
 Route::get('/relatorio-indicadores-json/{month}/{year}/{id}', [NpsController::class, 'relatorioIndicadoresJson']);
 
 Route::get('/grafico/{month}/{year}', [NpsController::class, 'grafico']);

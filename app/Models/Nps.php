@@ -12,9 +12,9 @@ class Nps extends Model
     public static function getNps($month, $year)
     {
         // Filtrando as notas com base no mês e ano
-        $result = DB::connection('nps')->table('notas')
-            ->whereMonth('DATA_RESPOSTA', $month)
-            ->whereYear('DATA_RESPOSTA', $year)
+        $result = DB::table('notas')
+            ->whereMonth('data_resposta', $month)
+            ->whereYear('data_resposta', $year)
             ->get();
 
         // Inicializando contadores
@@ -28,20 +28,30 @@ class Nps extends Model
         // Calculando NPS
         foreach ($result as $item) {
             $nps->NOTAS++;
-            if ($item->NOTA >= 9) {
+            if ($item->nota >= 9) {
                 $nps->PROMOTORES++;
-            } elseif ($item->NOTA >= 7) {
+            } elseif ($item->nota >= 7) {
                 $nps->NEUTROS++;
             } else {
                 $nps->DETRATORES++;
             }
         }
 
-        $nps->RESULTADO = $nps->PROMOTORES - $nps->DETRATORES;
-        $nps->PROMOTORES_PORCENTAGEM = ($nps->PROMOTORES / $nps->NOTAS) * 100;
-        $nps->NEUTROS_PORCENTAGEM = ($nps->NEUTROS / $nps->NOTAS) * 100;
-        $nps->DETRATORES_PORCENTAGEM = ($nps->DETRATORES / $nps->NOTAS) * 100;
-        $nps->PORCENTAGEM = ($nps->RESULTADO / $nps->NOTAS) * 100;
+        if ($nps->NOTAS > 0) {
+            // Cálculo do NPS e porcentagens
+            $nps->RESULTADO = $nps->PROMOTORES - $nps->DETRATORES;
+            $nps->PROMOTORES_PORCENTAGEM = round(($nps->PROMOTORES / $nps->NOTAS) * 100, 2);
+            $nps->NEUTROS_PORCENTAGEM = round(($nps->NEUTROS / $nps->NOTAS) * 100, 2);
+            $nps->DETRATORES_PORCENTAGEM = round(($nps->DETRATORES / $nps->NOTAS) * 100, 2);
+            $nps->PORCENTAGEM = round(($nps->RESULTADO / $nps->NOTAS) * 100, 2);
+        } else {
+            // Evitar divisão por zero
+            $nps->RESULTADO = 0;
+            $nps->PROMOTORES_PORCENTAGEM = 0;
+            $nps->NEUTROS_PORCENTAGEM = 0;
+            $nps->DETRATORES_PORCENTAGEM = 0;
+            $nps->PORCENTAGEM = 0;
+        }
 
         // Definindo a nota do NPS com base na porcentagem
         $nps->NPS = self::getNpsRating($nps->PORCENTAGEM);
@@ -64,189 +74,140 @@ class Nps extends Model
             return ["NOTA" => "Ruim", "COR" => "red", "ICONE" => "frown"];
         }
     }
-    public static function relatorioIndicadores($selectedMonth = null, $selectedYear = null, $indicador = null, $detalhado = null)
+    public static function relatorioIndicadores($selectedMonth = null, $selectedYear = null, $status = null, $detalhado = null)
     {
-        // Configurando os filtros de data e indicador em formato SQL
+        // Filtro de data e status
         $filtroData = isset($detalhado) && !is_null($detalhado)
-            ? "YEAR(C.AVADATA) = $selectedYear"
-            : "MONTH(C.AVADATA) = $selectedMonth AND YEAR(C.AVADATA) = $selectedYear";
-        $filtroIndicador = !is_null($indicador) ? "AND A.AVACODIGO = $indicador" : "";
+            ? "YEAR(c.data_previsao) = $selectedYear"
+            : "MONTH(c.data_previsao) = $selectedMonth AND YEAR(c.data_previsao) = $selectedYear";
 
-        // Construindo a consulta SQL manualmente
-        $sql_avaliacoes = "SELECT C.CHACODIGO, C.AVADATA, EXTRACT(MONTH FROM C.AVADATA) AS MES,
-                      A.AVOCODIGO AS NOTA, A.AVACODIGO
-                   FROM INCHAMADO C
-                   INNER JOIN INCHAAVALIACAO A ON C.CHACODIGO = A.CHACODIGO
-                   INNER JOIN INSUBDEPARTAMENTO S ON S.SDPCODIGO = C.SDPCODIGO
-                   WHERE $filtroData $filtroIndicador
-                   ORDER BY C.AVADATA";
+        $filtroStatus = !is_null($status) ? "AND c.status = '$status'" : "";
 
-        // Executando a consulta
-        $avaliacoes = DB::connection('cal')->select($sql_avaliacoes);
+        // Consulta SQL ajustada
+        $sql_avaliacoes = "
+            SELECT
+                c.id,
+                c.data_previsao,
+                EXTRACT(MONTH FROM c.data_previsao) AS mes,
+                c.status
+            FROM chamados c
+            WHERE $filtroData $filtroStatus
+            ORDER BY c.data_previsao
+        ";
 
-        // Inicializando variáveis
+        $avaliacoes = DB::select($sql_avaliacoes);
+
+        // Inicializando contadores
+        $meses_do_ano = Meses_Do_Ano(); // Função auxiliar para obter os nomes dos meses
         $notas = [];
-        $total_mensal = [];
-        $meses_do_ano = Meses_Do_Ano();  // Função helper para obter os meses do ano
-        $total_chamados = 0;
+        $media_anual = ['RUIM' => 0, 'REGULAR' => 0, 'BOM' => 0, 'OTIMO' => 0];
+        $total_mensal = array_fill_keys(array_values($meses_do_ano), 0);
 
-        // Inicializando contadores de notas e total mensal
-        foreach ($meses_do_ano as $m => $v) {
-            $notas[$v] = [
-                'RUIM' => 0,
-                'REGULAR' => 0,
-                'BOM' => 0,
-                'OTIMO' => 0
-            ];
-            $total_mensal[Nome_Do_Mes($m)] = 0;
-        }
-
-        // Iteração sobre as avaliações para classificar notas e calcular totais
         foreach ($avaliacoes as $av) {
-            $nota = $av->NOTA;
-            $mes = Nome_Do_Mes($av->MES);
+            $mes = Nome_Do_Mes($av->mes); // Função auxiliar para mapear o mês ao nome
+            $nota = $av->status;
 
-            // Excluir meses que têm conteúdo para cálculo de média anual
-            $excluir_mes = str_pad($av->MES, 2, "0", STR_PAD_LEFT);
-            unset($meses_do_ano[$excluir_mes]);
+            // Classificar os status
+            $tipo = match ($nota) {
+                'concluido' => 'OTIMO',
+                'em_andamento' => 'BOM',
+                'aberto' => 'REGULAR',
+                default => 'RUIM'
+            };
 
-            // Classificação das notas
-            switch ($nota) {
-                case 1:
-                case 5:
-                case 9:
-                    $notas[$mes]['OTIMO']++;
-                    break;
-
-                case 2:
-                case 6:
-                case 10:
-                    $notas[$mes]['BOM']++;
-                    break;
-
-                case 4:
-                case 7:
-                case 11:
-                    $notas[$mes]['REGULAR']++;
-                    break;
-
-                case 3:
-                case 8:
-                case 12:
-                    $notas[$mes]['RUIM']++;
-                    break;
-            }
-
+            $notas[$mes][$tipo] = ($notas[$mes][$tipo] ?? 0) + 1;
             $total_mensal[$mes]++;
-            $total_chamados++;
         }
 
-        // Calculando porcentagens
-        $media_anual = [
-            'OTIMO' => 0,
-            'BOM' => 0,
-            'REGULAR' => 0,
-            'RUIM' => 0
-        ];
-        foreach ($notas as $n => $v) {
-            foreach ($v as $tipo => $t) {
-                if ($total_mensal[$n] > 0) {
-                    $porcentagem = ($t * 100) / $total_mensal[$n];
-                    $notas[$n][$tipo] = number_format($porcentagem, 2, '.', '');
-
-                    // Acumulando para média anual
-                    $media_anual[$tipo] += $porcentagem;
-                } else {
-                    $notas[$n][$tipo] = "0.00";
-                }
+        // Calculando porcentagens e média anual
+        $meses_validos = 0;
+        foreach ($notas as $mes => $tipos) {
+            foreach ($tipos as $tipo => $valor) {
+                $porcentagem = $total_mensal[$mes] > 0 ? ($valor * 100 / $total_mensal[$mes]) : 0;
+                $notas[$mes][$tipo] = number_format($porcentagem, 2, '.', '');
+                $media_anual[$tipo] += $porcentagem;
             }
+            $meses_validos++;
         }
 
-        // Cálculo da média anual
-        $meses_media = 12 - count($meses_do_ano);  // Quantidade de meses considerados na média
-        foreach ($media_anual as $m => $v) {
-            if ($meses_media > 0) {
-                $media_anual[$m] = number_format($v / $meses_media, 2, ',', '');
-            } else {
-                $media_anual[$m] = "0,00";
-            }
+        foreach ($media_anual as $tipo => &$total) {
+            $total = $meses_validos > 0 ? number_format($total / $meses_validos, 2, ',', '') : '0,00';
         }
 
-        // Retornando o resultado em um array
-        return [
+        return response()->json([
             'notas' => $notas,
             'media_anual' => $media_anual,
-            'total_mensal' => $total_mensal,
-            'total_chamados' => $total_chamados
-        ];
+            'total_mensal' => $total_mensal
+        ]);
     }
+
 
     public static function getQuantidadesMensal($selectedMonth = null, $selectedYear = null, $detalhado = null)
     {
         // Definindo os filtros de data
         $filtroData = isset($detalhado) ?
-            "YEAR(CHADATAFINAL) = $selectedYear" :
-            "MONTH(CHADATAFINAL) = $selectedMonth AND YEAR(CHADATAFINAL) = $selectedYear";
+            "YEAR(data_finalizacao) = $selectedYear" :
+            "MONTH(data_finalizacao) = $selectedMonth AND YEAR(data_finalizacao) = $selectedYear";
 
         $filtroData2 = isset($detalhado) ?
-            "YEAR(CHADATA) = $selectedYear" :
-            "MONTH(CHADATA) = $selectedMonth AND YEAR(CHADATA) = $selectedYear";
+            "YEAR(data_previsao) = $selectedYear" :
+            "MONTH(data_previsao) = $selectedMonth AND YEAR(data_previsao) = $selectedYear";
 
         // Query de chamados concluídos e cancelados
-        $query = DB::connection('cal')->select("
-        SELECT
-            YEAR(C.CHADATAFINAL) AS ANO,
-            MONTH(C.CHADATAFINAL) AS MES,
-            C.STACODIGO,
-            S.STADESCRICAO,
-            COUNT(*) AS TOTAL_MENSAL
-        FROM INCHAMADO C
-        INNER JOIN inchastatus S ON S.STACODIGO = C.STACODIGO
-        WHERE $filtroData
-            AND C.STACODIGO IN (3, 4, 8)
-            AND C.CHADATAFINAL IS NOT NULL
-        GROUP BY YEAR(C.CHADATAFINAL), MONTH(C.CHADATAFINAL), C.STACODIGO, S.STADESCRICAO
-    ");
-        // dd($query); // Verifica o retorno de 'query'
+        $query = DB::table('cal')
+            ->selectRaw('
+                YEAR(data_finalizacao) AS ano,
+                MONTH(data_finalizacao) AS mes,
+                status,
+                COUNT(*) AS total_mensal
+            ')
+            ->whereRaw($filtroData)
+            ->whereIn('status', ['concluido', 'cancelado'])
+            ->whereNotNull('data_finalizacao')
+            ->groupByRaw('YEAR(data_finalizacao), MONTH(data_finalizacao), status')
+            ->get();
 
-        // Query de chamados abertos
-        $query2 = DB::connection('cal')->select("
-            SELECT
-                YEAR(C.CHADATA) AS ANO,
-                MONTH(C.CHADATA) AS MES,
-                99 AS STACODIGO,
-                'ABERTOS NO MES' AS STADESCRICAO,
-                COUNT(*) AS TOTAL_MENSAL
-            FROM INCHAMADO C
-            WHERE $filtroData2
-            GROUP BY YEAR(C.CHADATA), MONTH(C.CHADATA)
-        ");
-        // dd($query2);
-        // Processamento dos resultados
-        $resultadoBanco = array_merge($query, $query2);
+        // Query de chamados abertos no mês
+        $query2 = DB::table('cal')
+            ->selectRaw('
+                YEAR(data_previsao) AS ano,
+                MONTH(data_previsao) AS mes,
+                "aberto" AS status,
+                COUNT(*) AS total_mensal
+            ')
+            ->whereRaw($filtroData2)
+            ->groupByRaw('YEAR(data_previsao), MONTH(data_previsao)')
+            ->get();
 
-        // dd($resultadoBanco);
-        // dd($resultadoBanco);
+        // Mesclar os resultados das queries
+        $resultadoBanco = $query->merge($query2);
 
-
-        $totalAguardandoConcluido = 0;
+        $totalConcluido = 0;
         $statusChamados = [];
 
+        // Processamento dos resultados
         foreach ($resultadoBanco as $status) {
-            if (in_array($status->STACODIGO, [3, 8])) {
-                $totalAguardandoConcluido += $status->TOTAL_MENSAL;
-                $statusChamados['CONCLUÍDO'] = $totalAguardandoConcluido;
+            if (in_array($status->status, ['concluido'])) {
+                $totalConcluido += $status->total_mensal;
+                $statusChamados['CONCLUÍDO'] = $totalConcluido;
+            } elseif ($status->status === 'cancelado') {
+                $statusChamados['CANCELADO'] = $status->total_mensal;
             } else {
-                $statusChamados[$status->STADESCRICAO] = $status->TOTAL_MENSAL;
+                $statusChamados[strtoupper($status->status)] = $status->total_mensal;
             }
         }
 
         // Cálculos dos totais e percentuais
-        $totalGeral = $statusChamados['CONCLUÍDO'] + ($statusChamados['CANCELADO'] ?? 0);
-        $statusChamados['totalchamados'] = $totalGeral;
-        $statusChamados['PERCENTUAL_CONCLUIDO'] = round(($statusChamados['CONCLUÍDO'] / $totalGeral) * 100, 2);
-        $statusChamados['PERCENTUAL_CANCELADO'] = round(($statusChamados['CANCELADO'] ?? 0 / $totalGeral) * 100, 2);
+        $totalGeral = ($statusChamados['CONCLUÍDO'] ?? 0) + ($statusChamados['CANCELADO'] ?? 0);
+        $statusChamados['total_chamados'] = $totalGeral;
+        $statusChamados['PERCENTUAL_CONCLUIDO'] = $totalGeral > 0
+            ? round(($statusChamados['CONCLUÍDO'] ?? 0) / $totalGeral * 100, 2)
+            : 0;
+        $statusChamados['PERCENTUAL_CANCELADO'] = $totalGeral > 0
+            ? round(($statusChamados['CANCELADO'] ?? 0) / $totalGeral * 100, 2)
+            : 0;
 
+        // Retorna resultado detalhado ou resumido
         return is_null($detalhado) ? $statusChamados : $resultadoBanco;
     }
 

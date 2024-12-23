@@ -26,12 +26,29 @@ class NPSController extends Controller
         $meses = Meses_Do_Ano();
 
         $graficoMaisMenos3Dias = Nps::getMediaConclusaoChamados($month, $year);
+        $codigosCancelados = Nps::getChamadosCancelados($month, $year);
 
-        $codigosCancelados =  Nps::getChamadosCancelados($month, $year);
+        // Inicializa a estrutura de dados
+        $dados = [
+            'chamados_mais_que_tres' => $graficoMaisMenos3Dias,
+            'codigos_mais_que_tres' => [],
+            'setorContagem' => [],
+        ];
 
-        $dados['chamados_mais_que_tres'] = $graficoMaisMenos3Dias;
-        $dados['codigos_mais_que_tres'] = $graficoMaisMenos3Dias[0]->CHAMADOS_MAIOR_QUE_TRES; // Sem o explode, pois já é um array
-        $dados['setorContagem'] = $graficoMaisMenos3Dias[0]->contagemPorSetor;
+        // Verifica se há resultados na consulta $graficoMaisMenos3Dias
+        if (!empty($graficoMaisMenos3Dias) && isset($graficoMaisMenos3Dias[0])) {
+            $primeiroRegistro = $graficoMaisMenos3Dias[0];
+
+            // Verifica se o campo CHAMADOS_MAIOR_QUE_TRES está presente e é válido
+            $dados['codigos_mais_que_tres'] = isset($primeiroRegistro->CHAMADOS_MAIOR_QUE_TRES)
+                ? $primeiroRegistro->CHAMADOS_MAIOR_QUE_TRES
+                : [];
+
+            // Verifica se o campo contagemPorSetor está presente e é válido
+            $dados['setorContagem'] = isset($primeiroRegistro->contagemPorSetor)
+                ? $primeiroRegistro->contagemPorSetor
+                : [];
+        }
 
         // Adicionando os indicadores específicos
         $relatorioIndicadores = [
@@ -123,6 +140,11 @@ class NPSController extends Controller
     public function relatorioIndicadoresJson(Request $request, $selectedMonth, $selectedYear, $avacodigo)
     {
         $indicadores = Nps::relatorioIndicadores($selectedMonth, $selectedYear, $avacodigo);
+
+        // Verificação caso retorne vazio
+        if (!$indicadores) {
+            return response()->json(['error' => 'Nenhum dado encontrado'], 404);
+        }
 
         return response()->json($indicadores);
     }
