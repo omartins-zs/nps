@@ -15,9 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('titulo');
             $table->text('descricao')->nullable();
-            $table->foreignId('departamento_id')->constrained('departamentos')->onDelete('cascade');
+            $table->unsignedBigInteger('departamento_id'); // Tipo deve ser compatível
             $table->date('prazo');
-            $table->timestamps('criado_em', 'atualizado_em');
+            $table->timestamps();
+
+            $table->foreign('departamento_id')->references('id')->on('departamentos')->onDelete('cascade');
         });
     }
 
