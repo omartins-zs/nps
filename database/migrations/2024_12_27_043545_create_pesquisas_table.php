@@ -13,7 +13,11 @@ return new class extends Migration
     {
         Schema::create('pesquisas', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('titulo');
+            $table->text('descricao')->nullable();
+            $table->foreignId('departamento_id')->constrained('departamentos')->onDelete('cascade');
+            $table->date('prazo');
+            $table->timestamps('criado_em', 'atualizado_em');
         });
     }
 

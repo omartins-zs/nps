@@ -11,7 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        //
+        Schema::create('departamentos', function (Blueprint $table) {
+            $table->id();
+            $table->string('nome')->unique();
+            $table->timestamps('criado_em', 'atualizado_em');
+        });
     }
 
     /**
@@ -19,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('departamentos');
     }
 };
