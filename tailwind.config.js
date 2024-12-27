@@ -8,7 +8,6 @@ export default {
         './resources/**/*.blade.php',
         './resources/**/*.js',
         './resources/**/*.vue',
-        './node_modules/flowbite/**/*.js'  // Adicione essa linha
     ],
     theme: {
         extend: {
@@ -17,7 +16,5 @@ export default {
             },
         },
     },
-    plugins: [
-        require('flowbite/plugin')
-    ],
+    plugins: [],
 };
