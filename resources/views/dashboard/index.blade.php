@@ -29,55 +29,31 @@
                 </a>
             </legend>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                <!-- Card 1 - NPS Mensal -->
-                <div
-                    class="block max-w-sm p-6 bg-white border-t-4 border-blue-500 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h5 class="text-2xl font-bold text-gray-900 dark:text-white">NPS Mensal</h5>
-                            <p class="font-normal text-{{ $nps->NPS_RATING['COLOR'] }}-500">{{ $nps->NPS_PERCENT }}%</p>
-                        </div>
-                        <i
-                            class="fas fa-{{ $nps->NPS_RATING['ICON'] }} fa-2x text-{{ $nps->NPS_RATING['COLOR'] }}-500"></i>
-                    </div>
-                </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+                <!-- Cards -->
+                @php
+                    $cards = [
+                        ['title' => 'NPS Mensal', 'value' => $nps->NPS_PERCENT . '%', 'icon' => $nps->NPS_RATING['ICON'], 'color' => $nps->NPS_RATING['COLOR']],
+                        ['title' => 'Promotores', 'value' => "{$nps->PROMOTERS} ({$nps->PROMOTERS_PERCENT}%)", 'icon' => 'smile', 'color' => 'green'],
+                        ['title' => 'Passivos', 'value' => "{$nps->PASSIVES} ({$nps->PASSIVES_PERCENT}%)", 'icon' => 'meh', 'color' => 'yellow'],
+                        ['title' => 'Detratores', 'value' => "{$nps->DETRACTORS} ({$nps->DETRACTORS_PERCENT}%)", 'icon' => 'frown', 'color' => 'red'],
+                    ];
+                @endphp
 
-                <!-- Card 2 - Promotores -->
-                <div
-                    class="block max-w-sm p-6 bg-white border-t-4 border-green-500 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h5 class="text-lg font-semibold text-green-500">Promotores</h5>
-                            <p class="text-2xl font-bold">{{ $nps->PROMOTERS }} ({{ $nps->PROMOTERS_PERCENT }}%)</p>
+                @foreach($cards as $card)
+                    <div
+                        class="block p-6 bg-white dark:bg-gray-800 border-t-4 border-{{ $card['color'] }}-500 rounded-lg shadow hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h5 class="text-lg font-semibold text-{{ $card['color'] }}-500 dark:text-{{ $card['color'] }}-400">
+                                    {{ $card['title'] }}
+                                </h5>
+                                <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $card['value'] }}</p>
+                            </div>
+                            <i class="fas fa-{{ $card['icon'] }} fa-2x text-{{ $card['color'] }}-500"></i>
                         </div>
-                        <i class="fas fa-smile fa-2x text-green-500"></i>
                     </div>
-                </div>
-
-                <!-- Card 3 - Passivos -->
-                <div
-                    class="block max-w-sm p-6 bg-white border-t-4 border-yellow-500 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h5 class="text-lg font-semibold text-yellow-500">Passivos</h5>
-                            <p class="text-2xl font-bold">{{ $nps->PASSIVES }} ({{ $nps->PASSIVES_PERCENT }}%)</p>
-                        </div>
-                        <i class="fas fa-meh fa-2x text-yellow-500"></i>
-                    </div>
-                </div>
-
-                <!-- Card 4 - Detratores -->
-                <div
-                    class="block max-w-sm p-6 bg-white border-t-4 border-red-500 rounded-lg shadow hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700">
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <h5 class="text-lg font-semibold text-red-500">Detratores</h5>
-                            <p class="text-2xl font-bold">{{ $nps->DETRACTORS }} ({{ $nps->DETRACTORS_PERCENT }}%)</p>
-                        </div>
-                        <i class="fas fa-frown fa-2x text-red-500"></i>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </fieldset>
 
